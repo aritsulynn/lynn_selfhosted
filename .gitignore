@@ -1,0 +1,3 @@
+proxy/*
+.env
+fail2ban_data/db/*

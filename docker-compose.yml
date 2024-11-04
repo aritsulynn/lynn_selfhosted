@@ -1,0 +1,113 @@
+services:
+  # flowise:
+  #   image: flowiseai/flowise:latest
+  #   container_name: flowise
+  #   restart: unless-stopped
+  #   ports:
+  #     - "3001:3000"
+  #   environment:
+  #     - FLOWISE_PORT=3000
+  #     - DATABASE_PATH=/root/.flowise
+  #     - APIKEY_PATH=/root/.flowise
+  #     - SECRETKEY_PATH=/root/.flowise
+  #     - LOG_PATH=/root/.flowise/logs
+  #     - BLOB_STORAGE_PATH=/root/.flowise/storage
+  #     - SHOW_COMMUNITY_NODES=true
+  #     - DEBUG=true
+  #     - FLOWISE_USERNAME=lynn
+  #     - FLOWISE_PASSWORD=${FLOWISE_PASSWORD}
+  #   volumes:
+  #     - ./data:/root/.flowise
+  #   networks:
+  #     - public
+
+  proxy:
+    image: jc21/nginx-proxy-manager:latest
+    restart: unless-stopped
+    container_name: proxy
+    ports:
+      - '80:80'
+      - '81:81'
+      - '443:443'
+    volumes:
+      - ./proxy/data:/data
+      - ./proxy/letsencrypt:/etc/letsencrypt
+    networks:
+      - public
+
+  # open-webui:
+  #   image: ghcr.io/open-webui/open-webui:main
+  #   restart: unless-stopped
+  #   container_name: open-webui
+  #   environment:
+  #     - OPENAI_API_KEY=${OPENAI_API_KEY}
+  #   volumes:
+  #     - open-webui:/app/backend/data
+  #   ports:
+  #     - "3000:8080"
+  #   networks:
+  #     - public
+  
+  portainer:
+    image: portainer/portainer-ce:latest
+    container_name: portainer
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+      - "9443:9443"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - portainer_data:/data
+    networks:
+      - public
+
+#   client_body_buffer_size 512k;
+#   proxy_read_timeout 86400s;
+#   client_max_body_size 0;
+  nextcloud-aio-mastercontainer:
+    image: nextcloud/all-in-one:latest
+    init: true
+    restart: always
+    container_name: nextcloud-aio-mastercontainer # This line is not allowed to be changed as otherwise AIO will not work correctly
+    volumes:
+      - nextcloud_aio_mastercontainer:/mnt/docker-aio-config # This line is not allowed to be changed as otherwise the built-in backup solution will not work
+      - //var/run/docker.sock:/var/run/docker.sock:ro # May be changed on macOS, Windows, or docker rootless. See the applicable documentation. If adjusting, don't forget to also set 'WATCHTOWER_DOCKER_SOCKET_PATH'!
+    ports:
+      #- 80:80 # Can be removed when running behind a web server or reverse proxy (like Apache, Nginx, Cloudflare Tunnel and else). See https://github.com/nextcloud/all-in-one/blob/main/reverse-proxy.md
+      - 8383:8080
+      #- 8443:8443 # Can be removed when running behind a web server or reverse proxy (like Apache, Nginx, Cloudflare Tunnel and else). See https://github.com/nextcloud/all-in-one/blob/main/reverse-proxy.md
+    environment:
+      - SKIP_DOMAIN_VALIDATION=false
+      - APACHE_PORT=11000
+      - APACHE_IP_BINDING=0.0.0.0 
+      - NEXTCLOUD_UPLOAD_LIMIT=20G 
+      - NEXTCLOUD_MAX_TIME=3000 
+      - NEXTCLOUD_MEMORY_LIMIT=2024M
+
+
+  fail2ban:
+    image: crazymax/fail2ban:latest
+    container_name: fail2ban
+    restart: unless-stopped
+    environment:
+      - TZ=Etc/UTC  # Set to your timezone, e.g., 'Europe/Berlin'
+    volumes:
+      - ./proxy/data/logs:/var/log/nginx  # Access to NGINX logs for Fail2ban to monitor
+      - ./fail2ban_data:/data
+      - /etc/localtime:/etc/localtime:ro
+      - /var/run/docker.sock:/var/run/docker.sock  # Optional if using Fail2ban with Docker actions
+    networks:
+      - public
+    cap_add:
+      - NET_ADMIN
+
+volumes:
+  open-webui:
+  portainer_data:
+  nextcloud_aio_mastercontainer:
+    name: nextcloud_aio_mastercontainer
+
+networks:
+  public:
+    name: public
+    driver: bridge
