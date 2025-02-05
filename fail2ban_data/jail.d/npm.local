@@ -1,9 +1,0 @@
-[npm]
-enabled = true
-chain=INPUT
-maxretry = 3
-bantime = 48h
-findtime = 60m
-logpath = /var/log/nginx/default-host_*.log
-          /var/log/nginx/proxy-host-*.log
-action = docker-action
