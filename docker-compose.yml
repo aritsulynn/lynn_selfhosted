@@ -17,7 +17,7 @@ services:
       - FLOWISE_USERNAME=${FLOWISE_USERNAME}
       - FLOWISE_PASSWORD=${FLOWISE_PASSWORD}
     volumes:
-      - ./data:/root/.flowise
+      - ./flowise/data:/root/.flowise
     networks:
       - public
 
@@ -30,7 +30,7 @@ services:
       - "9443:9443"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-      - portainer_data:/data
+      - ./portainer_data:/data
     networks:
       - public
 
@@ -44,12 +44,16 @@ services:
       - "2019:2019"
     volumes:
       - ./Caddyfile:/etc/caddy/Caddyfile
-      - ./site:/srv
+      - ./caddy/site:/srv
       - caddy_data:/data
       - caddy_config:/config
+    networks:
+      - public
+
 
   stremio:
     image: tsaridas/stremio-docker:latest
+    container_name: stremio
     restart: unless-stopped
     environment:
       NO_CORS: 1
@@ -57,7 +61,9 @@ services:
       - 8080:8080
       - 11470:11470
     volumes:
-      - "/srv/config/stremio/:/root/.stremio-server"
+      - ./stremio/srv/config/stremio/:/root/.stremio-server
+    networks:
+      - public
 
   open-webui:
     image: ghcr.io/open-webui/open-webui:ollama
@@ -66,17 +72,32 @@ services:
     environment:
       - OPENAI_API_KEY=${OPENAI_API_KEY}
     volumes:
-      - open-webui:/app/backend/data
-      - ollama:/root/.ollama
+      - ./open-webui:/app/backend/data
+      - ./ollama:/root/.ollama
     ports:
       - "3000:8080"
     networks:
       - public
 
+  homarr:
+    container_name: homarr
+    image: ghcr.io/homarr-labs/homarr:latest
+    restart: unless-stopped
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock 
+      - ./homarr/appdata:/appdata
+    environment:
+      - SECRET_ENCRYPTION_KEY=${SECRET_ENCRYPTION_KEY}
+    ports:
+      - "7575:7575"
+    networks:
+      - public
+
+
 volumes:
-  open-webui:
-  ollama:
-  portainer_data:
+#  open-webui:
+#  ollama:
+#  portainer_data:
   caddy_data:
   caddy_config:
 
