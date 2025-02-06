@@ -33,22 +33,36 @@ services:
       - ./portainer_data:/data
     networks:
       - public
-
-  caddy:
-    image: caddy:latest
-    container_name: caddy
+  
+  nginx-proxy-manager:
+    image: 'jc21/nginx-proxy-manager:latest'
+    container_name: npm
     restart: unless-stopped
     ports:
-      - "80:80"
-      - "443:443"
-      - "2019:2019"
+      - '80:80'
+      - '81:81'
+      - '443:443'
     volumes:
-      - ./Caddyfile:/etc/caddy/Caddyfile
-      - ./caddy/site:/srv
-      - caddy_data:/data
-      - caddy_config:/config
+      - ./npm/data:/data
+      - ./npm/letsencrypt:/etc/letsencrypt
     networks:
       - public
+
+  # caddy:
+  #   image: caddy:latest
+  #   container_name: caddy
+  #   restart: unless-stopped
+  #   ports:
+  #     - "80:80"
+  #     - "443:443"
+  #     - "2019:2019"
+  #   volumes:
+  #     - ./Caddyfile:/etc/caddy/Caddyfile
+  #     - ./caddy/site:/srv
+  #     - caddy_data:/data
+  #     - caddy_config:/config
+  #   networks:
+  #     - public
 
 
   stremio:
@@ -92,14 +106,41 @@ services:
       - "7575:7575"
     networks:
       - public
+  
+  n8n:
+    container_name: n8n
+    image: docker.n8n.io/n8nio/n8n
+    restart: unless-stopped
+    ports:
+      - "5678:5678"
+    volumes:
+      - n8n_data:/home/node/.n8n
+    environment:
+      - GENERIC_TIMEZONE=Asia/Bangkok
+      - TZ=Asia/Bangkok
+      - N8N_SECURE_COOKIE=false
+    networks:
+      - public
 
+  watchtower:
+    image: containrrr/watchtower:latest
+    container_name: watchtower
+    restart: unless-stopped
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      - WATCHTOWER_CLEANUP=true       # Clean up old images after update
+      - WATCHTOWER_POLL_INTERVAL=86400 # Check for updates once a day (in seconds)
+    networks:
+      - public
 
 volumes:
 #  open-webui:
 #  ollama:
 #  portainer_data:
-  caddy_data:
-  caddy_config:
+  # caddy_data:
+  # caddy_config:
+  n8n_data:
 
 networks:
   public:
