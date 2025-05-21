@@ -1,83 +1,66 @@
 services:
-  flowise:
-    image: flowiseai/flowise:latest
-    container_name: flowise
-    restart: unless-stopped
-    ports:
-      - "3001:3000"
-    environment:
-      - FLOWISE_PORT=3000
-      - DATABASE_PATH=/root/.flowise
-      - APIKEY_PATH=/root/.flowise
-      - SECRETKEY_PATH=/root/.flowise
-      - LOG_PATH=/root/.flowise/logs
-      - BLOB_STORAGE_PATH=/root/.flowise/storage
-      - SHOW_COMMUNITY_NODES=true
-      - DEBUG=true
-      - FLOWISE_USERNAME=${FLOWISE_USERNAME}
-      - FLOWISE_PASSWORD=${FLOWISE_PASSWORD}
-    volumes:
-      - ./flowise/data:/root/.flowise
-    networks:
-      - public
-
-  portainer:
-    image: portainer/portainer-ce:latest
-    container_name: portainer
-    restart: unless-stopped
-    ports:
-      - "8000:8000"
-      - "9443:9443"
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
-      - ./portainer_data:/data
-    networks:
-      - public
-  
-  nginx-proxy-manager:
-    image: 'jc21/nginx-proxy-manager:latest'
-    container_name: npm
-    restart: unless-stopped
-    ports:
-      - '80:80'
-      - '81:81'
-      - '443:443'
-    volumes:
-      - ./npm/data:/data
-      - ./npm/letsencrypt:/etc/letsencrypt
-    networks:
-      - public
-
-  # caddy:
-  #   image: caddy:latest
-  #   container_name: caddy
+  # flowise:
+  #   image: flowiseai/flowise:latest
+  #   container_name: flowise
   #   restart: unless-stopped
   #   ports:
-  #     - "80:80"
-  #     - "443:443"
-  #     - "2019:2019"
+  #     - "3001:3000"
+  #   environment:
+  #     - FLOWISE_PORT=3000
+  #     - DATABASE_PATH=/root/.flowise
+  #     - APIKEY_PATH=/root/.flowise
+  #     - SECRETKEY_PATH=/root/.flowise
+  #     - LOG_PATH=/root/.flowise/logs
+  #     - BLOB_STORAGE_PATH=/root/.flowise/storage
+  #     - SHOW_COMMUNITY_NODES=true
+  #     - DEBUG=true
+  #     - FLOWISE_USERNAME=${FLOWISE_USERNAME}
+  #     - FLOWISE_PASSWORD=${FLOWISE_PASSWORD}
   #   volumes:
-  #     - ./Caddyfile:/etc/caddy/Caddyfile
-  #     - ./caddy/site:/srv
-  #     - caddy_data:/data
-  #     - caddy_config:/config
+  #     - ./flowise/data:/root/.flowise
   #   networks:
   #     - public
 
+  # portainer:
+  #   image: portainer/portainer-ce:latest
+  #   container_name: portainer
+  #   restart: unless-stopped
+  #   ports:
+  #     - "8000:8000"
+  #     - "9443:9443"
+  #   volumes:
+  #     - /var/run/docker.sock:/var/run/docker.sock
+  #     - ./portainer_data:/data
+  #   networks:
+  #     - public
 
-  stremio:
-    image: tsaridas/stremio-docker:latest
-    container_name: stremio
-    restart: unless-stopped
-    environment:
-      NO_CORS: 1
-    ports:
-      - 8080:8080
-      - 11470:11470
-    volumes:
-      - ./stremio/srv/config/stremio/:/root/.stremio-server
-    networks:
-      - public
+  # nginx-proxy-manager:
+  #   image: 'jc21/nginx-proxy-manager:latest'
+  #   container_name: npm
+  #   restart: unless-stopped
+  #   ports:
+  #     - '80:80'
+  #     - '81:81'
+  #     - '443:443'
+  #   volumes:
+  #     - ./npm/data:/data
+  #     - ./npm/letsencrypt:/etc/letsencrypt
+  #   networks:
+  #     - public
+
+  # stremio:
+  #   image: tsaridas/stremio-docker:latest
+  #   container_name: stremio
+  #   restart: unless-stopped
+  #   environment:
+  #     NO_CORS: 1
+  #   ports:
+  #     - 8080:8080
+  #     - 11470:11470
+  #   volumes:
+  #     - ./stremio/srv/config/stremio/:/root/.stremio-server
+  #   networks:
+  #     - public
 
   open-webui:
     image: ghcr.io/open-webui/open-webui:ollama
@@ -93,20 +76,20 @@ services:
     networks:
       - public
 
-  homarr:
-    container_name: homarr
-    image: ghcr.io/homarr-labs/homarr:latest
-    restart: unless-stopped
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock 
-      - ./homarr/appdata:/appdata
-    environment:
-      - SECRET_ENCRYPTION_KEY=${SECRET_ENCRYPTION_KEY}
-    ports:
-      - "7575:7575"
-    networks:
-      - public
-  
+  # homarr:
+  #   container_name: homarr
+  #   image: ghcr.io/homarr-labs/homarr:latest
+  #   restart: unless-stopped
+  #   volumes:
+  #     - /var/run/docker.sock:/var/run/docker.sock
+  #     - ./homarr/appdata:/appdata
+  #   environment:
+  #     - SECRET_ENCRYPTION_KEY=${SECRET_ENCRYPTION_KEY}
+  #   ports:
+  #     - "7575:7575"
+  #   networks:
+  #     - public
+
   n8n:
     container_name: n8n
     image: docker.n8n.io/n8nio/n8n
@@ -114,11 +97,36 @@ services:
     ports:
       - "5678:5678"
     volumes:
-      - n8n_data:/home/node/.n8n
+      # - n8n_data:/home/node/.n8n
+      - ./n8n_data:/home/node/.n8n
     environment:
       - GENERIC_TIMEZONE=Asia/Bangkok
       - TZ=Asia/Bangkok
-      - N8N_SECURE_COOKIE=false
+      - WEBHOOK_URL=https://n8n.9lynn.com
+      # - N8N_SECURE_COOKIE=false
+    networks:
+      - public
+
+  searxng:
+    image: searxng/searxng:latest
+    container_name: searxng
+    restart: always
+    ports:
+      - "8080:8080"
+    environment:
+      - BASE_URL=https://searxng.9lynn.com
+    volumes:
+      - ./searxng-settings:/etc/searxng
+    networks:
+      - public
+
+  cloudflared:
+    image: cloudflare/cloudflared
+    container_name: cloudflared
+    restart: unless-stopped
+    command: tunnel --no-autoupdate run
+    environment:
+      - TUNNEL_TOKEN=${CLOUDFLARE_TUNNEL_TOKEN}
     networks:
       - public
 
@@ -129,18 +137,18 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
     environment:
-      - WATCHTOWER_CLEANUP=true       # Clean up old images after update
+      - WATCHTOWER_CLEANUP=true # Clean up old images after update
       - WATCHTOWER_POLL_INTERVAL=86400 # Check for updates once a day (in seconds)
     networks:
       - public
 
-volumes:
+# volumes:
 #  open-webui:
 #  ollama:
 #  portainer_data:
-  # caddy_data:
-  # caddy_config:
-  n8n_data:
+# caddy_data:
+# caddy_config:
+# n8n_data:
 
 networks:
   public:
