@@ -1,3 +1,10 @@
 proxy/*
 .env
 fail2ban_data/db/*
+duckdns/*
+n8n_data/*
+stremio/*
+etc_wireguard/*
+flowise/*
+mongo_data/*
+open-webui/*
