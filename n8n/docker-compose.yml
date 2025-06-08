@@ -1,0 +1,20 @@
+services:
+  n8n:
+    container_name: n8n
+    image: docker.n8n.io/n8nio/n8n
+    restart: unless-stopped
+    ports:
+      - "5678:5678"
+    volumes:
+      - ./n8n_data:/home/node/.n8n # Persistent data will be in /opt/docker/n8n/data
+    environment:
+      # Timezone is set here, ensuring consistency
+      - GENERIC_TIMEZONE=Asia/Bangkok
+      - TZ=Asia/Bangkok
+      - WEBHOOK_URL=${N8N_WEBHOOK_URL} # Your n8n public URL
+      # - N8N_SECURE_COOKIE=false # Uncomment if you have issues with cookies behind proxy
+    networks:
+      - public
+# networks:
+#   public:
+#     external: true

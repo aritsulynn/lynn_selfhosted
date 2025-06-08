@@ -1,0 +1,221 @@
+services:
+  # flowise:
+  #   image: flowiseai/flowise:latest
+  #   container_name: flowise
+  #   restart: unless-stopped
+  #   ports:
+  #     - "3001:3000"
+  #   environment:
+  #     - FLOWISE_PORT=3000
+  #     - DATABASE_PATH=/root/.flowise
+  #     - APIKEY_PATH=/root/.flowise
+  #     - SECRETKEY_PATH=/root/.flowise
+  #     - LOG_PATH=/root/.flowise/logs
+  #     - BLOB_STORAGE_PATH=/root/.flowise/storage
+  #     - SHOW_COMMUNITY_NODES=true
+  #     - DEBUG=true
+  #     - FLOWISE_USERNAME=${FLOWISE_USERNAME}
+  #     - FLOWISE_PASSWORD=${FLOWISE_PASSWORD}
+  #   volumes:
+  #     - ./flowise/data:/root/.flowise
+  #   networks:
+  #     - public
+
+  # portainer:
+  #   image: portainer/portainer-ce:latest
+  #   container_name: portainer
+  #   restart: unless-stopped
+  #   ports:
+  #     - "8000:8000"
+  #     - "9443:9443"
+  #   volumes:
+  #     - /var/run/docker.sock:/var/run/docker.sock
+  #     - ./portainer_data:/data
+  #   networks:
+  #     - public
+
+  # nginx-proxy-manager:
+  #   image: 'jc21/nginx-proxy-manager:latest'
+  #   container_name: npm
+  #   restart: unless-stopped
+  #   ports:
+  #     - '80:80'
+  #     - '81:81'
+  #     - '443:443'
+  #   volumes:
+  #     - ./npm/data:/data
+  #     - ./npm/letsencrypt:/etc/letsencrypt
+  #   networks:
+  #     - public
+
+  # stremio:
+  #   image: tsaridas/stremio-docker:latest
+  #   container_name: stremio
+  #   restart: unless-stopped
+  #   environment:
+  #     NO_CORS: 1
+  #   ports:
+  #     - 8080:8080
+  #     - 11470:11470
+  #   volumes:
+  #     - ./stremio/srv/config/stremio/:/root/.stremio-server
+  #   networks:
+  #     - public
+
+  # open-webui:
+  #   image: ghcr.io/open-webui/open-webui:ollama
+  #   restart: unless-stopped
+  #   container_name: open-webui
+  #   environment:
+  #     - OPENAI_API_KEY=${OPENAI_API_KEY}
+  #   volumes:
+  #     - ./open-webui:/app/backend/data
+  #     - ollama:/root/.ollama
+  #   ports:
+  #     - "3000:8080"
+  #   networks:
+  #     - public
+
+  # homarr:
+  #   container_name: homarr
+  #   image: ghcr.io/homarr-labs/homarr:latest
+  #   restart: unless-stopped
+  #   volumes:
+  #     - /var/run/docker.sock:/var/run/docker.sock
+  #     - ./homarr/appdata:/appdata
+  #   environment:
+  #     - SECRET_ENCRYPTION_KEY=${SECRET_ENCRYPTION_KEY}
+  #   ports:
+  #     - "7575:7575"
+  #   networks:
+  #     - public
+
+  # mongo
+  # mongo:
+  #   image: mongo:latest
+  #   container_name: mongo
+  #   restart: unless-stopped
+  #   environment:
+  #     - MONGO_INITDB_ROOT_USERNAME=root
+  #     - MONGO_INITDB_ROOT_PASSWORD=#488178
+  #     - MONGO_INITDB_DATABASE=discord
+  #     - MONGO_INITDB_USERNAME=9dev
+  #     - MONGO_INITDB_PASSWORD=#488178
+  #   ports:
+  #     - "27017:27017"
+  #   volumes:
+  #     - ./init-mongo.sh:/docker-entrypoint-initdb.d/init-mongo.sh
+  #     - ./mongo_data:/data/db
+  #   networks:
+  #     - public
+
+  n8n:
+    container_name: n8n
+    image: docker.n8n.io/n8nio/n8n
+    restart: unless-stopped
+    ports:
+      - "5678:5678"
+    volumes:
+      # - n8n_data:/home/node/.n8n
+      - ./n8n_data:/home/node/.n8n
+    environment:
+      - GENERIC_TIMEZONE=Asia/Bangkok
+      - TZ=Asia/Bangkok
+      - WEBHOOK_URL=https://n8n.9lynn.com
+      # - N8N_SECURE_COOKIE=false
+    networks:
+      - public
+
+  # searxng:
+  #   image: searxng/searxng:latest
+  #   container_name: searxng
+  #   restart: always
+  #   ports:
+  #     - "8080:8080"
+  #   environment:
+  #     - BASE_URL=https://searxng.9lynn.com
+  #   volumes:
+  #     - ./searxng-settings:/etc/searxng
+  #   networks:
+  #     - public
+
+  cloudflared:
+    image: cloudflare/cloudflared
+    container_name: cloudflared
+    restart: unless-stopped
+    command: tunnel --no-autoupdate run
+    environment:
+      - TUNNEL_TOKEN=${CLOUDFLARE_TUNNEL_TOKEN}
+    networks:
+      - public
+
+  # wireguard
+  wg-easy:
+    environment:
+      # Change Language:
+      # (Supports: en, ua, ru, tr, no, pl, fr, de, ca, es, ko, vi, nl, is, pt, chs, cht, it, th, hi)
+      - LANG=en
+      # ⚠️ Required:
+      # Change this to your host's public address
+      - WG_HOST=innyl.tplinkdns.com
+
+      # Optional:
+      - PASSWORD_HASH=${PASSWORD_HASH} # (needs double $$, hash of 'foobar123'; see "How_to_generate_an_bcrypt_hash.md" for generate the hash)
+      # - PORT=51821
+      - WG_PORT=51820
+      # - WG_CONFIG_PORT=92820
+      - WG_DEFAULT_ADDRESS=10.8.0.x
+      - WG_DEFAULT_DNS=1.1.1.1
+      # - WG_MTU=1420
+      # - WG_ALLOWED_IPS=192.168.15.0/24, 10.0.1.0/24
+      # - WG_PERSISTENT_KEEPALIVE=25
+      # - WG_PRE_UP=echo "Pre Up" > /etc/wireguard/pre-up.txt
+      # - WG_POST_UP=echo "Post Up" > /etc/wireguard/post-up.txt
+      # - WG_PRE_DOWN=echo "Pre Down" > /etc/wireguard/pre-down.txt
+      # - WG_POST_DOWN=echo "Post Down" > /etc/wireguard/post-down.txt
+      # - UI_TRAFFIC_STATS=true
+      # - UI_CHART_TYPE=0 # (0 Charts disabled, 1 # Line chart, 2 # Area chart, 3 # Bar chart)
+
+    image: ghcr.io/wg-easy/wg-easy:14
+    container_name: wg-easy
+    volumes:
+      - ./etc_wireguard:/etc/wireguard
+    ports:
+      - "51820:51820/udp"
+      - "51821:51821/tcp"
+    restart: unless-stopped
+    cap_add:
+      - NET_ADMIN
+      - SYS_MODULE
+      # - NET_RAW # ⚠️ Uncomment if using Podman
+    sysctls:
+      - net.ipv4.ip_forward=1
+      - net.ipv4.conf.all.src_valid_mark=1
+    networks:
+      - public
+
+  watchtower:
+    image: containrrr/watchtower:latest
+    container_name: watchtower
+    restart: unless-stopped
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      - WATCHTOWER_CLEANUP=true # Clean up old images after update
+      - WATCHTOWER_POLL_INTERVAL=86400 # Check for updates once a day (in seconds)
+    networks:
+      - public
+
+# volumes:
+# etc_wireguard:
+#  open-webui:
+# ollama:
+#  portainer_data:
+# caddy_data:
+# caddy_config:
+# n8n_data:
+
+networks:
+  public:
+    name: public
+    driver: bridge

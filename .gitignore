@@ -1,10 +1,17 @@
-proxy/*
-.env
-fail2ban_data/db/*
-duckdns/*
-n8n_data/*
-stremio/*
-etc_wireguard/*
-flowise/*
-mongo_data/*
-open-webui/*
+# Ignore .env files anywhere
+*.env
+
+# Ignore n8n data folders (e.g., archive/n8n_data/, n8n/n8n_data/)
+**/n8n_data/
+
+# Ignore etc_wireguard folders (e.g., archive/etc_wireguard/, wg-easy/etc_wireguard/)
+**/etc_wireguard/
+
+# Ignore these folders anywhere
+**/fail2ban_data/db/
+**/duckdns/
+**/mongo_data/
+**/proxy/
+**/stremio/
+**/flowise/
+**/open-webui/
